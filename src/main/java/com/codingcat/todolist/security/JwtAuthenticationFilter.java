@@ -21,7 +21,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Slf4j
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-  @Autowired private TokenProvider tokenProvider;
+  @Autowired TokenProvider tokenProvider;
 
   @Override
   protected void doFilterInternal(
@@ -33,7 +33,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       log.info("Filter is running...");
 
       // 토큰 검사하기 JWT이므로 인가 서버에 요청하지 않고도 검증 가능
-      if(token != null && token.equalsIgnoreCase("null")){
+      if(token != null && !token.equalsIgnoreCase("null")){
         String userId = tokenProvider.validateAndGetUserId(token);
         log.info("Authentication User ID : "+userId);
 
@@ -48,6 +48,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         authenticationToken.setDetails(
           new WebAuthenticationDetailsSource().buildDetails(request));;
 
+        // SecurityContextHolder에 SecurityContext를 등록
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
         securityContext.setAuthentication(authenticationToken);
 

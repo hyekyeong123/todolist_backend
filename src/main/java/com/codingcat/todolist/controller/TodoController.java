@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,11 +25,10 @@ public class TodoController {
   TodoService todoService;
 
   @GetMapping
-  public ResponseEntity<?> retrieveTodoList(){
-    String tempUserId = "temporary-user";
+  public ResponseEntity<?> retrieveTodoList(@AuthenticationPrincipal String userId){
 
     // 사용자의 todoList 목록 가져오기
-    List<TodoEntity> entities = todoService.retrieve(tempUserId);
+    List<TodoEntity> entities = todoService.retrieve(userId);
     List<TodoDto> todoDtos = entities.stream()
       .map(TodoDto::new)
       .collect(Collectors.toList());
@@ -40,14 +40,16 @@ public class TodoController {
   }
 
   @PostMapping
-  public ResponseEntity<?> createTodo(@RequestBody TodoDto dto){
+  public ResponseEntity<?> createTodo(
+    @AuthenticationPrincipal String userId,
+    @RequestBody TodoDto dto
+  ){
     try{
-      String tempUserId = "temporary-user";
 
       // TodoEntity로 변환
       TodoEntity todoEntity = TodoDto.toEntity(dto);
       todoEntity.setId(null); // 이게 굳이 필요한가?
-      todoEntity.setUserId(tempUserId);
+      todoEntity.setUserId(userId);
 
       // 저장
       List<TodoEntity> entities = todoService.create(todoEntity);
@@ -73,13 +75,14 @@ public class TodoController {
   }
 
   @DeleteMapping
-  public ResponseEntity<?> deleteTodo(@RequestBody TodoDto dto){
+  public ResponseEntity<?> deleteTodo(
+    @AuthenticationPrincipal String userId,
+    @RequestBody TodoDto dto
+  ){
     try{
-      String tempUserId = "temporary-user";
-
       // TodoEntity로 변환
       TodoEntity todoEntity = TodoDto.toEntity(dto);
-      todoEntity.setUserId(tempUserId);
+      todoEntity.setUserId(userId);
 
       // 저장
       List<TodoEntity> entities = todoService.delete(todoEntity);

@@ -2,7 +2,9 @@ package com.codingcat.todolist.user;
 
 import com.codingcat.todolist.user.model.UserEntity;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -24,7 +26,14 @@ public class UserService {
   }
 
   // 이메일과 비밀번호가 일치하는지 확인
-  public UserEntity getByCredentials(final String username, final String password){
-    return userRepository.findByUsernameAndPassword(username, password);
+  public UserEntity getByCredentials(
+    final String username, final String inputPassword, final PasswordEncoder passwordEncoder
+  ){
+    final UserEntity DBUser = userRepository.findByUsername(username);
+
+    // matches 메서드를 이용해 패스워드가 같은지 확인
+    if(DBUser != null && passwordEncoder.matches(inputPassword, DBUser.getPassword())){
+      return DBUser;
+    }else return null;
   }
 }

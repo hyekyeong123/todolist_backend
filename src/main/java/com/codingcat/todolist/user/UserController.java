@@ -4,9 +4,12 @@ import com.codingcat.todolist.dto.ResponseDto;
 import com.codingcat.todolist.security.TokenProvider;
 import com.codingcat.todolist.user.model.UserDto;
 import com.codingcat.todolist.user.model.UserEntity;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,10 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RestController
 @RequestMapping("/auth")
+@RequiredArgsConstructor
 public class UserController {
   @Autowired private UserService userService;
   @Autowired private TokenProvider tokenProvider;
-
+  private final PasswordEncoder passwordEncoder;
 
   // 회원가입
   @PostMapping("/signup")
@@ -28,8 +32,7 @@ public class UserController {
       // 리퀘스트를 이용해 저장할 유저 만들기
       UserEntity user = UserEntity.builder()
         .username(userDto.getUsername())
-//        .password(passwordEncoder.encode(userDto.getPassword()))
-        .password(userDto.getPassword())
+        .password(passwordEncoder.encode(userDto.getPassword()))
         .build();
 
       // 서비스를 이용해 리파지토리에 유저 저장
@@ -52,13 +55,13 @@ public class UserController {
   }
 
   // 로그인
-  @PostMapping("/signin")
+  @PostMapping("/login")
   public ResponseEntity<?> authenticate(@RequestBody UserDto userDto) {
 
     UserEntity user = userService.getByCredentials(
       userDto.getUsername(),
-      userDto.getPassword()
-//      passwordEncoder
+      userDto.getPassword(),
+      passwordEncoder
     );
 
     if(user != null) {
